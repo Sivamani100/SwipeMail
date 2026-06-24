@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'swipe_provider.dart';
 import 'email_preview_modal.dart';
 import '../../widgets/tinder_card.dart';
@@ -16,25 +17,21 @@ class SwipeScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(state.categoryName),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            notifier.reset();
-            Navigator.pop(context);
-          },
-        ),
+        automaticallyImplyLeading: false,
         actions: [
-          // Complete button in the top right to finish cleaning early if they want to review
           if (state.deleteQueue.isNotEmpty || state.keepQueue.isNotEmpty)
             Padding(
-              padding: const EdgeInsets.only(right: 12.0),
-              child: TextButton.icon(
-                onPressed: () => AppRouter.navigateToReview(context),
-                icon: const Icon(Icons.fact_check, size: 18),
-                label: const Text('Review'),
-                style: TextButton.styleFrom(
+              padding: const EdgeInsets.only(right: 16.0, top: 8.0, bottom: 8.0),
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.15),
                   foregroundColor: Theme.of(context).colorScheme.primary,
+                  elevation: 0,
+                  shape: const StadiumBorder(),
                 ),
+                onPressed: () => AppRouter.navigateToReview(context),
+                icon: const Icon(Iconsax.tick_circle, size: 16),
+                label: const Text('Done', style: TextStyle(fontWeight: FontWeight.bold)),
               ),
             ),
         ],
@@ -70,7 +67,7 @@ class SwipeScreen extends ConsumerWidget {
         children: [
           Row(
             children: [
-              Icon(Icons.check_circle, color: const Color(0xFF00B894), size: 16),
+              Icon(Iconsax.tick_circle, color: const Color(0xFF00B894), size: 16),
               const SizedBox(width: 4),
               Text(
                 'Keep: ${state.keepQueue.length}',
@@ -87,7 +84,7 @@ class SwipeScreen extends ConsumerWidget {
           ),
           Row(
             children: [
-              Icon(Icons.delete, color: const Color(0xFFD63031), size: 16),
+              Icon(Iconsax.trash, color: const Color(0xFFD63031), size: 16),
               const SizedBox(width: 4),
               Text(
                 'Remove: ${state.deleteQueue.length}',
@@ -128,7 +125,7 @@ class SwipeScreen extends ConsumerWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.cloud_off, size: 64, color: Colors.grey),
+            const Icon(Iconsax.cloud_cross, size: 64, color: Colors.grey),
             const SizedBox(height: 16),
             Text(
               'Oops! Connection issues',
@@ -153,37 +150,43 @@ class SwipeScreen extends ConsumerWidget {
       return _buildEmptyDeckView(context, state, notifier);
     }
 
-    // Build the visual card stack (render only top 3 to preserve memory & framerates)
-    final List<Widget> cardWidgets = [];
-    final renderCount = state.cards.length > 3 ? 3 : state.cards.length;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Build the visual card stack (render only top 3 to preserve memory & framerates)
+        final List<Widget> cardWidgets = [];
+        final renderCount = state.cards.length > 3 ? 3 : state.cards.length;
 
-    for (int i = renderCount - 1; i >= 0; i--) {
-      final card = state.cards[i];
-      cardWidgets.add(
-        TinderCard(
-          key: ValueKey(card.id),
-          card: card,
-          onSwipeLeft: () => notifier.swipeDelete(),
-          onSwipeRight: () => notifier.swipeKeep(),
-          onTap: () {
-            if (card.type == CardType.individual) {
-              EmailPreviewModal.show(
-                context: context,
-                email: card.email!,
-                onKeep: () => notifier.swipeKeep(),
-                onDelete: () => notifier.swipeDelete(),
-              );
-            }
-          },
-          onReviewIndividually: card.type == CardType.bulk
-              ? () => notifier.reviewGroupIndividually()
-              : null,
-        ),
-      );
-    }
+        for (int i = renderCount - 1; i >= 0; i--) {
+          final card = state.cards[i];
+          cardWidgets.add(
+            TinderCard(
+              key: ValueKey(card.id),
+              card: card,
+              parentHeight: constraints.maxHeight,
+              parentWidth: constraints.maxWidth,
+              onSwipeLeft: () => notifier.swipeDelete(),
+              onSwipeRight: () => notifier.swipeKeep(),
+              onTap: () {
+                if (card.type == CardType.individual) {
+                  EmailPreviewModal.show(
+                    context: context,
+                    email: card.email!,
+                    onKeep: () => notifier.swipeKeep(),
+                    onDelete: () => notifier.swipeDelete(),
+                  );
+                }
+              },
+              onReviewIndividually: card.type == CardType.bulk
+                  ? () => notifier.reviewGroupIndividually()
+                  : null,
+            ),
+          );
+        }
 
-    return Stack(
-      children: cardWidgets,
+        return Stack(
+          children: cardWidgets,
+        );
+      },
     );
   }
 
@@ -207,7 +210,7 @@ class SwipeScreen extends ConsumerWidget {
                   color: primaryColor.withOpacity(0.1),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(Icons.done_all, size: 48, color: primaryColor),
+                child: Icon(Iconsax.tick_circle, size: 48, color: primaryColor),
               ),
               const SizedBox(height: 24),
               Text(
@@ -247,17 +250,6 @@ class SwipeScreen extends ConsumerWidget {
                   ),
                 ),
               ],
-              const SizedBox(height: 12),
-              SizedBox(
-                width: double.infinity,
-                child: TextButton(
-                  onPressed: () {
-                    notifier.reset();
-                    Navigator.pop(context);
-                  },
-                  child: const Text('Back to Dashboard'),
-                ),
-              ),
             ],
           ),
         ),
@@ -280,7 +272,7 @@ class SwipeScreen extends ConsumerWidget {
           // Undo Button
           _buildActionButton(
             context,
-            icon: Icons.undo,
+            icon: Iconsax.rotate_left,
             color: canUndo ? Colors.amber : Colors.grey.withOpacity(0.3),
             onPressed: canUndo ? () => notifier.undo() : null,
             size: 50,
@@ -289,7 +281,7 @@ class SwipeScreen extends ConsumerWidget {
           // Delete Button (Swipe Left)
           _buildActionButton(
             context,
-            icon: Icons.delete_outline,
+            icon: Iconsax.trash,
             color: const Color(0xFFD63031),
             onPressed: () => notifier.swipeDelete(),
             size: 64,
@@ -298,7 +290,7 @@ class SwipeScreen extends ConsumerWidget {
           // Keep Button (Swipe Right)
           _buildActionButton(
             context,
-            icon: Icons.check_circle_outline,
+            icon: Iconsax.tick_circle,
             color: const Color(0xFF00B894),
             onPressed: () => notifier.swipeKeep(),
             size: 64,

@@ -177,6 +177,21 @@ class GmailService {
     await api.users.messages.delete('me', messageId);
   }
 
+  /// Empties the entire Gmail Trash folder. This cannot be undone.
+  Future<void> emptyAllTrash() async {
+    final hasSession = await _authService.tryRestoreSession();
+    if (!hasSession) {
+      throw Exception('User is not authenticated');
+    }
+    final client = GoogleSignInHttpClient(_authService);
+    final response = await client.post(
+      Uri.parse('https://gmail.googleapis.com/gmail/v1/users/me/trash/empty'),
+    );
+    if (response.statusCode != 200 && response.statusCode != 204) {
+      throw Exception('Failed to empty trash: ${response.body}');
+    }
+  }
+
   /// Permanently deletes multiple emails in parallel.
   Future<void> deleteEmailsPermanentlyBatch(List<String> messageIds) async {
     if (messageIds.isEmpty) return;

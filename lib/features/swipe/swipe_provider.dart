@@ -135,11 +135,57 @@ class SwipeNotifier extends Notifier<SwipeState> {
 
   @override
   SwipeState build() {
+    Future.microtask(() => initQuery('Inbox', 'label:INBOX'));
     return SwipeState.initial();
   }
 
   void startSession() {
     _sessionStartTime = DateTime.now();
+  }
+
+  String? getNextCategory(String currentCategory) {
+    switch (currentCategory) {
+      case 'Inbox':
+        return 'Promotions';
+      case 'Promotions':
+        return 'Social';
+      case 'Social':
+        return 'Updates';
+      default:
+        return null;
+    }
+  }
+
+  String getQueryForCategory(String category) {
+    switch (category) {
+      case 'Promotions':
+        return 'category:promotions label:INBOX';
+      case 'Social':
+        return 'category:social label:INBOX';
+      case 'Updates':
+        return 'category:updates label:INBOX';
+      default:
+        return 'label:INBOX';
+    }
+  }
+
+  void _checkAndAdvanceCategory() {
+    if (state.cards.isEmpty && state.nextPageToken == null) {
+      final nextCat = getNextCategory(state.categoryName);
+      if (nextCat != null) {
+        state = state.copyWith(
+          categoryName: nextCat,
+          query: getQueryForCategory(nextCat),
+          nextPageToken: null,
+          status: SwipeStatus.loading,
+        );
+        loadMoreEmails();
+      } else {
+        state = state.copyWith(status: SwipeStatus.empty);
+      }
+    } else if (state.cards.isEmpty && state.nextPageToken != null) {
+      loadMoreEmails();
+    }
   }
 
   /// Initialize swipe stack with a query.
@@ -168,13 +214,27 @@ class SwipeNotifier extends Notifier<SwipeState> {
         pageToken: state.nextPageToken,
       );
 
-      final List<SwipeCard> newCards = _groupAndBuildCards(result.emails);
+      final keptIds = ref.read(storageServiceProvider).getKeptEmailIds().toSet();
+      final inMemoryQueueIds = {
+        ...state.keepQueue.map((e) => e.id),
+        ...state.deleteQueue.map((e) => e.id),
+      };
+
+      final filteredEmails = result.emails.where((e) {
+        return !keptIds.contains(e.id) && !inMemoryQueueIds.contains(e.id);
+      }).toList();
+
+      final List<SwipeCard> newCards = _groupAndBuildCards(filteredEmails);
 
       state = state.copyWith(
-        status: newCards.isEmpty && state.cards.isEmpty ? SwipeStatus.empty : SwipeStatus.loaded,
         cards: [...state.cards, ...newCards],
         nextPageToken: result.nextPageToken,
+        status: SwipeStatus.loaded,
       );
+
+      if (state.cards.isEmpty) {
+        _checkAndAdvanceCategory();
+      }
     } catch (e) {
       state = state.copyWith(
         status: SwipeStatus.error,
@@ -226,6 +286,7 @@ class SwipeNotifier extends Notifier<SwipeState> {
 
     if (card.type == CardType.individual) {
       final email = card.email!;
+      ref.read(storageServiceProvider).addKeptEmailIds([email.id]);
       state = state.copyWith(
         cards: remaining,
         keepQueue: [...state.keepQueue, email],
@@ -244,6 +305,7 @@ class SwipeNotifier extends Notifier<SwipeState> {
     } else {
       // Bulk keep
       final emails = card.associatedEmails!;
+      ref.read(storageServiceProvider).addKeptEmailIds(emails.map((e) => e.id).toList());
       state = state.copyWith(
         cards: remaining,
         keepQueue: [...state.keepQueue, ...emails],
@@ -259,6 +321,10 @@ class SwipeNotifier extends Notifier<SwipeState> {
         ],
         status: remaining.isEmpty ? SwipeStatus.empty : SwipeStatus.loaded,
       );
+    }
+
+    if (remaining.isEmpty) {
+      _checkAndAdvanceCategory();
     }
   }
 
@@ -303,6 +369,10 @@ class SwipeNotifier extends Notifier<SwipeState> {
         ],
         status: remaining.isEmpty ? SwipeStatus.empty : SwipeStatus.loaded,
       );
+    }
+
+    if (remaining.isEmpty) {
+      _checkAndAdvanceCategory();
     }
   }
 
@@ -356,6 +426,10 @@ class SwipeNotifier extends Notifier<SwipeState> {
       final updatedKeep = List<Email>.from(state.keepQueue)
         ..removeWhere((e) => restoredIds.contains(e.id));
 
+      if (!lastAction.wasDeleted) {
+        ref.read(storageServiceProvider).removeKeptEmailIds(restoredIds.toList());
+      }
+
       state = state.copyWith(
         cards: [lastAction.card, ...state.cards],
         deleteQueue: updatedDelete,
@@ -373,6 +447,7 @@ class SwipeNotifier extends Notifier<SwipeState> {
       final updatedKeep = List<Email>.from(state.keepQueue);
       if (!updatedKeep.any((e) => e.id == email.id)) {
         updatedKeep.add(email);
+        ref.read(storageServiceProvider).addKeptEmailIds([email.id]);
       }
       state = state.copyWith(deleteQueue: updatedDelete, keepQueue: updatedKeep);
     } else {
@@ -380,6 +455,7 @@ class SwipeNotifier extends Notifier<SwipeState> {
       final updatedDelete = List<Email>.from(state.deleteQueue);
       if (!updatedDelete.any((e) => e.id == email.id)) {
         updatedDelete.add(email);
+        ref.read(storageServiceProvider).removeKeptEmailIds([email.id]);
       }
       state = state.copyWith(deleteQueue: updatedDelete, keepQueue: updatedKeep);
     }
@@ -424,6 +500,7 @@ class SwipeNotifier extends Notifier<SwipeState> {
       );
 
       state = state.copyWith(status: SwipeStatus.success);
+      await storageService.clearKeptEmailIds();
     } catch (e) {
       state = state.copyWith(
         status: SwipeStatus.error,
@@ -434,6 +511,7 @@ class SwipeNotifier extends Notifier<SwipeState> {
 
   void reset() {
     state = SwipeState.initial();
+    Future.microtask(() => initQuery('Inbox', 'label:INBOX'));
   }
 }
 

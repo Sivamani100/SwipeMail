@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../core/providers.dart';
 import '../authentication/auth_provider.dart';
 
@@ -35,7 +36,7 @@ class SettingsScreen extends ConsumerWidget {
 
           // Dark Mode Toggle
           ListTile(
-            leading: Icon(isDark ? Icons.dark_mode : Icons.light_mode, color: Theme.of(context).colorScheme.primary),
+            leading: Icon(isDark ? Iconsax.moon : Iconsax.sun_1, color: Theme.of(context).colorScheme.primary),
             title: const Text('Theme Mode'),
             subtitle: Text(isDark ? 'Dark Theme' : 'Light Theme'),
             trailing: Switch(
@@ -52,7 +53,7 @@ class SettingsScreen extends ConsumerWidget {
 
           // Clear cache
           ListTile(
-            leading: const Icon(Icons.cleaning_services, color: Colors.amber),
+            leading: const Icon(Iconsax.brush_4, color: Colors.amber),
             title: const Text('Clear Local Cache'),
             subtitle: const Text('Resets local dashboard statistics and temporary email queues.'),
             onTap: () => _confirmReset(context, ref),
@@ -63,28 +64,28 @@ class SettingsScreen extends ConsumerWidget {
 
           // Privacy Policy
           ListTile(
-            leading: const Icon(Icons.privacy_tip_outlined),
+            leading: const Icon(Iconsax.security_safe),
             title: const Text('Privacy Policy'),
             onTap: () => _launchUrl('https://swipemail.app/privacy'),
           ),
 
           // Terms
           ListTile(
-            leading: const Icon(Icons.gavel_outlined),
+            leading: const Icon(Iconsax.note_1),
             title: const Text('Terms of Service'),
             onTap: () => _launchUrl('https://swipemail.app/terms'),
           ),
 
           // Support
           ListTile(
-            leading: const Icon(Icons.help_outline),
+            leading: const Icon(Iconsax.info_circle),
             title: const Text('Help & Support'),
             onTap: () => _launchUrl('mailto:support@swipemail.app?subject=SwipeMail%20Support'),
           ),
 
           // About Application
           const AboutListTile(
-            icon: Icon(Icons.info_outline),
+            icon: Icon(Iconsax.info_circle),
             applicationName: 'SwipeMail',
             applicationVersion: '1.0.0',
             applicationLegalese: '© 2026 SwipeMail Team. Privacy-focused Gmail cleanup.',
@@ -101,9 +102,10 @@ class SettingsScreen extends ConsumerWidget {
                 backgroundColor: const Color(0xFFD63031),
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: const StadiumBorder(),
               ),
               onPressed: () => _confirmLogout(context, authNotifier),
-              icon: const Icon(Icons.logout),
+              icon: const Icon(Iconsax.logout),
               label: const Text('Disconnect Gmail Account'),
             ),
           ),
@@ -139,7 +141,11 @@ class SettingsScreen extends ConsumerWidget {
             child: const Text('Cancel'),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.amber, foregroundColor: Colors.black),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.amber,
+              foregroundColor: Colors.black,
+              shape: const StadiumBorder(),
+            ),
             onPressed: () async {
               final storage = ref.read(storageServiceProvider);
               await storage.clearAllData();
@@ -167,7 +173,11 @@ class SettingsScreen extends ConsumerWidget {
             child: const Text('Cancel'),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFD63031), foregroundColor: Colors.white),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFD63031),
+              foregroundColor: Colors.white,
+              shape: const StadiumBorder(),
+            ),
             onPressed: () async {
               Navigator.pop(context); // Close dialog
               Navigator.pop(context); // Exit settings

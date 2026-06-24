@@ -46,3 +46,17 @@ class ThemeNotifier extends Notifier<bool> {
 }
 
 final themeProvider = NotifierProvider<ThemeNotifier, bool>(ThemeNotifier.new);
+
+class DashboardTabNotifier extends Notifier<int> {
+  @override
+  int build() => 0;
+
+  void setTab(int index) {
+    state = index;
+  }
+}
+
+/// Provider to manage the active dashboard tab index (0 = Overview, 1 = Swipe, 2 = Bin, 3 = Settings)
+final dashboardTabProvider = NotifierProvider<DashboardTabNotifier, int>(DashboardTabNotifier.new);
+
+

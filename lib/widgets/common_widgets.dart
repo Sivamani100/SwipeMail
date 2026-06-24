@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 
 class ShimmerLoader extends StatefulWidget {
   final double width;
@@ -143,7 +144,7 @@ class SwipeBrandHeader extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Icon(
-          Icons.swipe,
+          Iconsax.arrange_square_2,
           color: Theme.of(context).colorScheme.primary,
           size: size + 4,
         ),

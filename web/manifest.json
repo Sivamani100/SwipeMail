@@ -1,11 +1,11 @@
 {
-    "name": "swipemail",
-    "short_name": "swipemail",
+    "name": "SwipeMail",
+    "short_name": "SwipeMail",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#F5F3EE",
+    "theme_color": "#1A1A1A",
+    "description": "Swipe your way to inbox zero.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

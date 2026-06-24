@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../swipe/swipe_provider.dart';
 import '../../models/email_model.dart';
 import '../../routing/app_router.dart';
@@ -57,7 +58,7 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> with SingleTickerPr
             isDeleteQueue: true,
             onAction: (email) => notifier.toggleReviewState(email, true), // Toggle to Keep
             emptyText: 'No emails in Trash Queue.',
-            actionIcon: Icons.check_circle_outline,
+            actionIcon: Iconsax.tick_circle,
             actionColor: const Color(0xFF00B894),
             actionTooltip: 'Keep this email',
           ),
@@ -68,7 +69,7 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> with SingleTickerPr
             isDeleteQueue: false,
             onAction: (email) => notifier.toggleReviewState(email, false), // Toggle to Delete
             emptyText: 'No emails in Keep Queue.',
-            actionIcon: Icons.delete_outline,
+            actionIcon: Iconsax.trash,
             actionColor: const Color(0xFFD63031),
             actionTooltip: 'Move to Trash Queue',
           ),
@@ -105,6 +106,7 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> with SingleTickerPr
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFFD63031),
                         foregroundColor: Colors.white,
+                        shape: const StadiumBorder(),
                       ),
                       onPressed: () => _showConfirmationDialog(context, state.deleteQueue.length),
                       child: const Text('Empty Queue'),
@@ -140,7 +142,7 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> with SingleTickerPr
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.inbox_outlined, size: 64, color: Colors.grey.withOpacity(0.5)),
+            Icon(Iconsax.direct_inbox, size: 64, color: Colors.grey.withOpacity(0.5)),
             const SizedBox(height: 16),
             Text(emptyText, style: const TextStyle(fontSize: 16, color: Colors.grey)),
           ],
@@ -203,7 +205,7 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> with SingleTickerPr
       context: context,
       builder: (context) {
         return AlertDialog(
-          icon: const Icon(Icons.warning_amber_rounded, size: 48, color: Colors.orange),
+          icon: const Icon(Iconsax.warning_2, size: 48, color: Colors.orange),
           title: const Text('Move to Gmail Trash'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -235,6 +237,7 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> with SingleTickerPr
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFD63031),
                 foregroundColor: Colors.white,
+                shape: const StadiumBorder(),
               ),
               onPressed: () {
                 Navigator.pop(context); // Close dialog

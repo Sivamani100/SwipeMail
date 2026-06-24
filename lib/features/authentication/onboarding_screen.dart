@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../widgets/common_widgets.dart';
 import 'auth_provider.dart';
 
@@ -64,14 +65,14 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 },
                 children: [
                   _buildPage(
-                    icon: Icons.swipe_left_alt_outlined,
+                    icon: Iconsax.arrange_square_2,
                     headline: 'Clean your inbox with simple swipes.',
                     description: 'Swipe right to keep emails. Swipe left to move them to trash. Manage your inbox at the speed of thought.',
                     ctaText: 'Get Started',
                     onCtaPressed: _nextPage,
                   ),
                   _buildPage(
-                    icon: Icons.security_outlined,
+                    icon: Iconsax.security_safe,
                     headline: 'Your privacy comes first.',
                     description: 'We never sell your data or read your emails on third-party servers. Everything connects directly to your Gmail API local device.',
                     ctaText: 'Continue',
@@ -186,7 +187,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               shape: BoxShape.circle,
             ),
             child: Icon(
-              Icons.mail_lock_outlined,
+              Iconsax.sms,
               size: 80,
               color: primaryColor,
             ),
@@ -231,7 +232,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   : const Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.login),
+                        Icon(Iconsax.login),
                         SizedBox(width: 12),
                         Text('Connect Gmail'),
                       ],

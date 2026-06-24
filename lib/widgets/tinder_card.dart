@@ -1,10 +1,13 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../features/swipe/swipe_provider.dart';
 
 class TinderCard extends StatefulWidget {
   final SwipeCard card;
+  final double parentHeight;
+  final double parentWidth;
   final VoidCallback onSwipeLeft;
   final VoidCallback onSwipeRight;
   final VoidCallback onTap;
@@ -13,6 +16,8 @@ class TinderCard extends StatefulWidget {
   const TinderCard({
     super.key,
     required this.card,
+    required this.parentHeight,
+    required this.parentWidth,
     required this.onSwipeLeft,
     required this.onSwipeRight,
     required this.onTap,
@@ -125,20 +130,19 @@ class _TinderCardState extends State<TinderCard> with SingleTickerProviderStateM
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-    final cardWidth = size.width * 0.9;
-    final cardHeight = size.height * 0.6;
+    final cardWidth = widget.parentWidth * 0.92;
+    final cardHeight = widget.parentHeight * 0.85;
 
     // Calculate rotation angle (max 15 degrees)
-    final rotation = (_dragOffset.dx / size.width) * (pi / 12);
+    final rotation = (_dragOffset.dx / widget.parentWidth) * (pi / 12);
 
     // Calculate opacity of Keep/Trash overlays
     final keepOpacity = min(max(_dragOffset.dx / 100.0, 0.0), 1.0);
     final trashOpacity = min(max(-_dragOffset.dx / 100.0, 0.0), 1.0);
 
     return Positioned(
-      left: (size.width - cardWidth) / 2,
-      top: (size.height - cardHeight) / 2.5,
+      left: (widget.parentWidth - cardWidth) / 2,
+      top: (widget.parentHeight - cardHeight) / 3.5,
       child: GestureDetector(
         onPanStart: _onPanStart,
         onPanUpdate: _onPanUpdate,
@@ -321,7 +325,7 @@ class _TinderCardState extends State<TinderCard> with SingleTickerProviderStateM
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(
-                  Icons.touch_app,
+                  Iconsax.info_circle,
                   size: 16,
                   color: isDark ? const Color(0xFFA0A5C0) : Colors.black54,
                 ),
@@ -365,7 +369,7 @@ class _TinderCardState extends State<TinderCard> with SingleTickerProviderStateM
                 shape: BoxShape.circle,
               ),
               child: Icon(
-                Icons.mark_email_unread,
+                Iconsax.sms,
                 size: 56,
                 color: primaryColor,
               ),
@@ -423,7 +427,7 @@ class _TinderCardState extends State<TinderCard> with SingleTickerProviderStateM
                 width: double.infinity,
                 child: OutlinedButton.icon(
                   onPressed: widget.onReviewIndividually,
-                  icon: const Icon(Icons.playlist_play),
+                  icon: const Icon(Iconsax.task),
                   label: const Text('Review Individually'),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: primaryColor,

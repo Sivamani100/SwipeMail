@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../models/email_model.dart';
 
 class EmailPreviewModal extends StatelessWidget {
@@ -82,7 +83,7 @@ class EmailPreviewModal extends StatelessWidget {
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.close),
+                  icon: const Icon(Iconsax.close_circle),
                   onPressed: () => Navigator.pop(context),
                 ),
               ],
@@ -185,7 +186,7 @@ class EmailPreviewModal extends StatelessWidget {
                       Navigator.pop(context);
                       onDelete();
                     },
-                    icon: const Icon(Icons.delete_outline),
+                    icon: const Icon(Iconsax.trash),
                     label: const Text('Mark Delete'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFFD63031),
@@ -200,7 +201,7 @@ class EmailPreviewModal extends StatelessWidget {
                       Navigator.pop(context);
                       onKeep();
                     },
-                    icon: const Icon(Icons.check_circle_outline),
+                    icon: const Icon(Iconsax.tick_circle),
                     label: const Text('Keep Email'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF00B894),

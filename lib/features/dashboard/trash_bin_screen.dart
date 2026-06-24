@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../core/providers.dart';
 import '../../models/email_model.dart';
 import '../../widgets/common_widgets.dart';
@@ -141,12 +142,10 @@ class TrashBinNotifier extends Notifier<TrashBinState> {
   }
 
   Future<bool> emptyTrashPermanently() async {
-    if (state.emails.isEmpty) return false;
     state = state.copyWith(isActionInProgress: true);
     try {
       final gmailService = ref.read(gmailServiceProvider);
-      final ids = state.emails.map((e) => e.id).toList();
-      await gmailService.deleteEmailsPermanentlyBatch(ids);
+      await gmailService.emptyAllTrash();
       
       state = state.copyWith(
         emails: [],
@@ -176,7 +175,9 @@ class TrashBinScreen extends ConsumerStatefulWidget {
 
 class _TrashBinScreenState extends ConsumerState<TrashBinScreen> {
   final ScrollController _scrollController = ScrollController();
+  final TextEditingController _searchController = TextEditingController();
   String? _expandedEmailId;
+  String _searchQuery = '';
 
   @override
   void initState() {
@@ -187,6 +188,7 @@ class _TrashBinScreenState extends ConsumerState<TrashBinScreen> {
   @override
   void dispose() {
     _scrollController.dispose();
+    _searchController.dispose();
     super.dispose();
   }
 
@@ -213,6 +215,7 @@ class _TrashBinScreenState extends ConsumerState<TrashBinScreen> {
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.red,
               foregroundColor: Colors.white,
+              shape: const StadiumBorder(),
             ),
             onPressed: () async {
               Navigator.pop(context);
@@ -254,6 +257,7 @@ class _TrashBinScreenState extends ConsumerState<TrashBinScreen> {
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.red,
               foregroundColor: Colors.white,
+              shape: const StadiumBorder(),
             ),
             onPressed: () async {
               Navigator.pop(context);
@@ -284,6 +288,15 @@ class _TrashBinScreenState extends ConsumerState<TrashBinScreen> {
     final trashState = ref.watch(trashBinNotifierProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
+    final filteredEmails = trashState.emails.where((email) {
+      if (_searchQuery.isEmpty) return true;
+      final q = _searchQuery.toLowerCase();
+      return email.subject.toLowerCase().contains(q) ||
+          email.senderName.toLowerCase().contains(q) ||
+          email.senderEmail.toLowerCase().contains(q) ||
+          email.snippet.toLowerCase().contains(q);
+    }).toList();
+
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -293,7 +306,7 @@ class _TrashBinScreenState extends ConsumerState<TrashBinScreen> {
         actions: [
           if (trashState.emails.isNotEmpty)
             IconButton(
-              icon: const Icon(Icons.delete_sweep_outlined, color: Colors.redAccent),
+              icon: const Icon(Iconsax.trash_copy, color: Colors.redAccent),
               tooltip: 'Empty Trash',
               onPressed: () => _confirmDeleteAll(context),
             ),
@@ -316,7 +329,7 @@ class _TrashBinScreenState extends ConsumerState<TrashBinScreen> {
                     child: Row(
                       children: [
                         Icon(
-                          Icons.info_outline_rounded,
+                          Iconsax.info_circle,
                           color: Theme.of(context).colorScheme.primary,
                           size: 28,
                         ),
@@ -327,6 +340,7 @@ class _TrashBinScreenState extends ConsumerState<TrashBinScreen> {
                             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                   fontSize: 12,
                                   height: 1.4,
+                                  color: isDark ? Colors.white70 : Colors.black87,
                                 ),
                           ),
                         ),
@@ -335,89 +349,208 @@ class _TrashBinScreenState extends ConsumerState<TrashBinScreen> {
                   ),
                 ),
 
-                Expanded(
-                  child: Builder(
-                    builder: (context) {
-                      if (trashState.isLoading) {
-                        return const Center(
-                          child: CircularProgressIndicator(),
-                        );
-                      }
-
-                      if (trashState.errorMessage != null) {
-                        return Center(
-                          child: Padding(
-                            padding: const EdgeInsets.all(24.0),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Icon(Icons.error_outline, size: 48, color: Colors.red),
-                                const SizedBox(height: 16),
-                                Text(
-                                  trashState.errorMessage!,
-                                  textAlign: TextAlign.center,
-                                  style: Theme.of(context).textTheme.bodyMedium,
-                                ),
-                                const SizedBox(height: 16),
-                                ElevatedButton(
-                                  onPressed: () => ref
-                                      .read(trashBinNotifierProvider.notifier)
-                                      .fetchTrashEmails(),
-                                  child: const Text('Try Again'),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      }
-
-                      if (trashState.emails.isEmpty) {
-                        return Center(
+                // Go to Swiper / Clean Shortcut Card
+                Padding(
+                  padding: const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 16.0),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: isDark
+                            ? [const Color(0xFF2C1B4D), const Color(0xFF16122C)]
+                            : [const Color(0xFFEEF2FF), const Color(0xFFE0E7FF)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(
+                        color: isDark ? const Color(0xFF4338CA).withOpacity(0.2) : const Color(0xFFC7D2FE).withOpacity(0.4),
+                        width: 1,
+                      ),
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Iconsax.arrange_square_2,
+                          color: Theme.of(context).colorScheme.primary,
+                          size: 24,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
                           child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Icon(
-                                Icons.delete_outline_rounded,
-                                size: 80,
-                                color: isDark ? Colors.white30 : Colors.black26,
-                              ),
-                              const SizedBox(height: 16),
                               Text(
-                                'Your trash is clean!',
-                                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                      color: isDark ? Colors.white70 : Colors.black87,
-                                    ),
+                                'Ready to clean more?',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                  color: isDark ? Colors.white : Colors.black87,
+                                ),
                               ),
-                              const SizedBox(height: 8),
                               Text(
-                                'No emails in label:TRASH.',
-                                style: Theme.of(context).textTheme.bodyMedium,
+                                'Swipe emails to inbox or trash',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: isDark ? Colors.white54 : Colors.black54,
+                                ),
                               ),
                             ],
                           ),
-                        );
-                      }
+                        ),
+                        ElevatedButton.icon(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Theme.of(context).colorScheme.primary,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                            textStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                            shape: const StadiumBorder(),
+                            elevation: 0,
+                          ),
+                          onPressed: () {
+                            ref.read(dashboardTabProvider.notifier).setTab(1);
+                          },
+                          icon: const Icon(Iconsax.brush_4, size: 14),
+                          label: const Text('Clean Inbox'),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
 
-                      return RefreshIndicator(
-                        onRefresh: () => ref
-                            .read(trashBinNotifierProvider.notifier)
-                            .fetchTrashEmails(),
-                        child: ListView.builder(
+                // Search Bar Card
+                Padding(
+                  padding: const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 16.0),
+                  child: GlassContainer(
+                    borderRadius: 24,
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                    child: TextField(
+                      controller: _searchController,
+                      onChanged: (val) {
+                        setState(() {
+                          _searchQuery = val;
+                        });
+                      },
+                      decoration: InputDecoration(
+                        hintText: 'Search trashed emails...',
+                        border: InputBorder.none,
+                        prefixIcon: Icon(
+                          Iconsax.search_normal_1,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                        suffixIcon: _searchQuery.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(Iconsax.close_circle),
+                                onPressed: () {
+                                  _searchController.clear();
+                                  setState(() {
+                                    _searchQuery = '';
+                                  });
+                                },
+                              )
+                            : null,
+                      ),
+                    ),
+                  ),
+                ),
+
+                Expanded(
+                  child: RefreshIndicator(
+                    color: Theme.of(context).colorScheme.primary,
+                    onRefresh: () => ref
+                        .read(trashBinNotifierProvider.notifier)
+                        .fetchTrashEmails(),
+                    child: Builder(
+                      builder: (context) {
+                        if (trashState.isLoading) {
+                          return const Center(
+                            child: CircularProgressIndicator(),
+                          );
+                        }
+
+                        if (trashState.errorMessage != null) {
+                          return SingleChildScrollView(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            child: Container(
+                              height: MediaQuery.of(context).size.height * 0.6,
+                              padding: const EdgeInsets.all(24.0),
+                              alignment: Alignment.center,
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Icon(Iconsax.warning_2, size: 48, color: Colors.red),
+                                  const SizedBox(height: 16),
+                                  Text(
+                                    trashState.errorMessage!,
+                                    textAlign: TextAlign.center,
+                                    style: Theme.of(context).textTheme.bodyMedium,
+                                  ),
+                                  const SizedBox(height: 16),
+                                  ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      shape: const StadiumBorder(),
+                                    ),
+                                    onPressed: () => ref
+                                        .read(trashBinNotifierProvider.notifier)
+                                        .fetchTrashEmails(),
+                                    child: const Text('Try Again'),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        }
+
+                        if (filteredEmails.isEmpty) {
+                          return SingleChildScrollView(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            child: Container(
+                              height: MediaQuery.of(context).size.height * 0.6,
+                              alignment: Alignment.center,
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Iconsax.trash,
+                                    size: 80,
+                                    color: isDark ? Colors.white30 : Colors.black26,
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Text(
+                                    _searchQuery.isNotEmpty ? 'No search results' : 'Your trash is clean!',
+                                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                          fontWeight: FontWeight.bold,
+                                          color: isDark ? Colors.white70 : Colors.black87,
+                                        ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    _searchQuery.isNotEmpty
+                                        ? 'No emails match "$_searchQuery".'
+                                        : 'No emails in label:TRASH.',
+                                    style: Theme.of(context).textTheme.bodyMedium,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        }
+
+                        return ListView.builder(
                           controller: _scrollController,
                           physics: const AlwaysScrollableScrollPhysics(),
                           padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                          itemCount: trashState.emails.length +
-                              (trashState.isLoadingMore ? 1 : 0),
+                          itemCount: filteredEmails.length +
+                              (trashState.isLoadingMore && _searchQuery.isEmpty ? 1 : 0),
                           itemBuilder: (context, index) {
-                            if (index == trashState.emails.length) {
+                            if (index == filteredEmails.length) {
                               return const Padding(
                                 padding: EdgeInsets.symmetric(vertical: 16.0),
                                 child: Center(child: CircularProgressIndicator()),
                               );
                             }
 
-                            final email = trashState.emails[index];
+                            final email = filteredEmails[index];
                             final isExpanded = _expandedEmailId == email.id;
 
                             return AnimatedContainer(
@@ -477,7 +610,7 @@ class _TrashBinScreenState extends ConsumerState<TrashBinScreen> {
                                                               ?.copyWith(
                                                                 fontWeight:
                                                                     FontWeight.bold,
-                                                              ),
+                                                               ),
                                                           maxLines: 1,
                                                           overflow:
                                                               TextOverflow.ellipsis,
@@ -560,10 +693,7 @@ class _TrashBinScreenState extends ConsumerState<TrashBinScreen> {
                                                   // Restore button
                                                   OutlinedButton.icon(
                                                     style: OutlinedButton.styleFrom(
-                                                      shape: RoundedRectangleBorder(
-                                                        borderRadius:
-                                                            BorderRadius.circular(12),
-                                                      ),
+                                                      shape: const StadiumBorder(),
                                                       side: BorderSide(
                                                         color: Theme.of(context)
                                                             .colorScheme
@@ -588,7 +718,7 @@ class _TrashBinScreenState extends ConsumerState<TrashBinScreen> {
                                                         );
                                                       }
                                                     },
-                                                    icon: const Icon(Icons.restore_page_rounded),
+                                                    icon: const Icon(Iconsax.rotate_left),
                                                     label: const Text('Restore to Inbox'),
                                                   ),
                                                   const SizedBox(width: 12),
@@ -597,17 +727,14 @@ class _TrashBinScreenState extends ConsumerState<TrashBinScreen> {
                                                     style: ElevatedButton.styleFrom(
                                                       backgroundColor: Colors.red,
                                                       foregroundColor: Colors.white,
-                                                      shape: RoundedRectangleBorder(
-                                                        borderRadius:
-                                                            BorderRadius.circular(12),
-                                                      ),
+                                                      shape: const StadiumBorder(),
                                                       elevation: 0,
                                                     ),
                                                     onPressed: () =>
                                                         _confirmDeletePermanently(
                                                             context, email),
                                                     icon: const Icon(
-                                                      Icons.delete_forever_rounded,
+                                                      Iconsax.trash,
                                                       color: Colors.white,
                                                     ),
                                                     label: const Text('Delete Permanently'),
@@ -624,9 +751,9 @@ class _TrashBinScreenState extends ConsumerState<TrashBinScreen> {
                               ),
                             );
                           },
-                        ),
-                      );
-                    },
+                        );
+                      },
+                    ),
                   ),
                 ),
               ],

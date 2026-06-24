@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../swipe/swipe_provider.dart';
 import '../dashboard/dashboard_provider.dart';
 import '../../widgets/common_widgets.dart';
@@ -70,7 +71,7 @@ class _SuccessScreenState extends ConsumerState<SuccessScreen> with SingleTicker
                     border: Border.all(color: Colors.green, width: 3),
                   ),
                   child: const Icon(
-                    Icons.check_circle_rounded,
+                    Iconsax.tick_circle,
                     size: 80,
                     color: Colors.green,
                   ),

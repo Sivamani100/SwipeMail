@@ -64,10 +64,25 @@ class AppTheme {
           elevation: 4,
           shadowColor: darkPrimary.withOpacity(0.4),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
+          shape: const StadiumBorder(),
           textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: darkPrimary,
+          side: const BorderSide(color: darkPrimary, width: 2),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          shape: const StadiumBorder(),
+          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: darkPrimary,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          shape: const StadiumBorder(),
+          textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
         ),
       ),
     );
@@ -120,12 +135,28 @@ class AppTheme {
           elevation: 4,
           shadowColor: lightPrimary.withOpacity(0.4),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
+          shape: const StadiumBorder(),
           textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: lightPrimary,
+          side: const BorderSide(color: lightPrimary, width: 2),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          shape: const StadiumBorder(),
+          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: lightPrimary,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          shape: const StadiumBorder(),
+          textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
         ),
       ),
     );
   }
 }
+

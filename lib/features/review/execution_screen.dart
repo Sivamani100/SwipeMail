@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../swipe/swipe_provider.dart';
 import 'success_screen.dart';
 
@@ -52,7 +53,7 @@ class _ExecutionScreenState extends ConsumerState<ExecutionScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 if (state.status == SwipeStatus.error) ...[
-                  const Icon(Icons.error_outline, size: 72, color: Color(0xFFD63031)),
+                  const Icon(Iconsax.warning_2, size: 72, color: Color(0xFFD63031)),
                   const SizedBox(height: 24),
                   Text(
                     'Trashing Failed',

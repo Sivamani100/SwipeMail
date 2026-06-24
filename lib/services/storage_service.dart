@@ -30,7 +30,7 @@ class StorageService {
 
   // --- Theme Mode ---
   bool isDarkMode() {
-    return _prefs.getBool(StorageKeys.isDarkMode) ?? true; // Default to dark mode
+    return _prefs.getBool(StorageKeys.isDarkMode) ?? false; // Default to light mode
   }
 
   Future<void> setDarkMode(bool value) async {
@@ -151,6 +151,27 @@ class StorageService {
     await _prefs.remove(StorageKeys.cachedEmails);
   }
 
+  // --- Kept Email IDs Cache ---
+  List<String> getKeptEmailIds() {
+    return _prefs.getStringList('kept_email_ids') ?? [];
+  }
+
+  Future<void> addKeptEmailIds(List<String> ids) async {
+    final current = getKeptEmailIds();
+    final updated = {...current, ...ids}.toList();
+    await _prefs.setStringList('kept_email_ids', updated);
+  }
+
+  Future<void> removeKeptEmailIds(List<String> ids) async {
+    final current = getKeptEmailIds();
+    final updated = current.where((id) => !ids.contains(id)).toList();
+    await _prefs.setStringList('kept_email_ids', updated);
+  }
+
+  Future<void> clearKeptEmailIds() async {
+    await _prefs.remove('kept_email_ids');
+  }
+
   // --- Clear All Data (Reset App) ---
   Future<void> clearAllData() async {
     await clearTokens();
@@ -162,5 +183,6 @@ class StorageService {
     await _prefs.remove(StorageKeys.statsDuration);
     await _prefs.remove(StorageKeys.cachedEmails);
     await _prefs.remove('session_history');
+    await clearKeptEmailIds();
   }
 }
